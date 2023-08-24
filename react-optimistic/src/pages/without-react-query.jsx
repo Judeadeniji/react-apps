@@ -12,10 +12,7 @@ function MessageInput() {
           const message = `${t.data.message}`;
           t.clear()
           input.current.textContent = ""
-           create({ type: "sent", message })
-           create({ type: "sent", message })
-           create({ type: "sent", message })
-           create({ type: "sent", message })
+           await create("sent", message)
         }}>
       <span ref={input} contentEditable name="message" role="textarea" className="min-h-[1px] max-h-[150px] focus:outline-0 border w-[240px] rounded-3xl px-2 py-1 whitespace-pre-wrap overflow-y-scroll" onInput={(e) => {
         t.write("sent", `${e.target.textContent}`.trim())

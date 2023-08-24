@@ -1,4 +1,5 @@
 import {
+  Component,
   createContext,
   useContext,
   useTransition,
@@ -87,6 +88,26 @@ class DB {
   }
 }
 
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    console.error(error);
+    return { hasError: true, message: error.message, stack: error.stack };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <h1>Something went wrong. {this.state.message}  {this.state.stack}</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+
 export function reactive(_value) {
   const [state, setState] = useState({ _value });
 
@@ -116,11 +137,13 @@ export function AppProvider({ children }) {
 
   // chats from react query will be cached by react query by default;
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <appCtx.Provider value={{ legacyChats, temp }}>
         {children}
       </appCtx.Provider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -261,7 +284,7 @@ export function useLegacyChats() {
   return {
     isLoading: isLoading.value,
     chats: legacyChats.value,
-    create: async ({ type, message }) => {
+    create: async (type, message) => {
       await update({ type, message });
       if (type === "sent") {
         setTimeout(async () => {
@@ -301,15 +324,11 @@ function useOptimistic({
         onComplete && (await onComplete(update));
         fail(e.message);
       }
-      if (isPending) return fulfil();
-
-      startTransition(async () => {});
     });
   };
 
   return {
     update,
-    isPending,
   };
 }
 
