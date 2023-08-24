@@ -7,6 +7,7 @@ import {
   Route,
 } from "react-router-dom";
 import RQ from "./pages/with-react-query"
+import NoRQ from "./pages/without-react-query"
 import { AppProvider } from "./hooks"
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AppProvider>
         <Routes>
           <Route path="/" element={<RQ />} />
+          <Route path="/legacy" element={<NoRQ />} />
         </Routes>
       </AppProvider>
     </BrowserRouter>

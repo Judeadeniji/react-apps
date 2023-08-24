@@ -1,21 +1,44 @@
-import { createContext, useContext, useState } from "react"
-import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from "react-query";
+import {
+  createContext,
+  useContext,
+  useTransition,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "react-query";
 
 class DB {
   constructor() {
     this.store = new Map([
-      ["sent", [{
-        type: "sent",
-        message: "Hi 👋",
-        local: false,
-        timestamp: new Date()
-      }]],
-      ["received", [{
-        type: "received",
-        message: "How are you doing?",
-        local: false,
-        timestamp: new Date()
-      }]],
+      [
+        "sent",
+        [
+          {
+            type: "sent",
+            message: "Hi 👋",
+            local: false,
+            timestamp: new Date(),
+          },
+        ],
+      ],
+      [
+        "received",
+        [
+          {
+            type: "received",
+            message: "How are you doing?",
+            local: false,
+            timestamp: new Date(),
+          },
+        ],
+      ],
     ]);
   }
 
@@ -40,11 +63,13 @@ class DB {
       setTimeout(() => {
         const allMessages = [];
         for (const [type, messages] of this.store.entries()) {
-          allMessages.push(...messages.map(message => ({ type, ...message })));
+          allMessages.push(
+            ...messages.map((message) => ({ type, ...message }))
+          );
         }
-        
+
         allMessages.sort((a, b) => a.timestamp - b.timestamp);
-        
+
         fulfil({
           messages: allMessages,
           count: allMessages.length,
@@ -54,11 +79,13 @@ class DB {
   }
 
   get length() {
-    const totalLength = Array.from(this.store).reduce((total, [, messages]) => total + messages.length, 0);
+    const totalLength = Array.from(this.store).reduce(
+      (total, [, messages]) => total + messages.length,
+      0
+    );
     return totalLength;
   }
 }
-
 
 export function reactive(_value) {
   const [state, setState] = useState({ _value });
@@ -81,12 +108,12 @@ const appCtx = createContext(null);
 const queryClient = new QueryClient();
 
 export function AppProvider({ children }) {
-  const legacyChats = reactive([]);
+  const legacyChats = reactive({});
   const temp = reactive({
     type: "sent",
-    message: ""
+    message: "",
   });
-  
+
   // chats from react query will be cached by react query by default;
   return (
     <QueryClientProvider client={queryClient}>
@@ -94,7 +121,7 @@ export function AppProvider({ children }) {
         {children}
       </appCtx.Provider>
     </QueryClientProvider>
-  )
+  );
 }
 
 const server = new DB();
@@ -103,7 +130,7 @@ export function useQueryChats() {
   const queryClient = useQueryClient();
 
   const { isLoading, isFetching, data, refetch } = useQuery({
-    queryKey: ['chats'],
+    queryKey: ["chats"],
     queryFn: async () => {
       return await server.readAll();
     },
@@ -112,41 +139,41 @@ export function useQueryChats() {
   const createMutation = useMutation({
     mutationFn: async ({ type, message }) => await server.create(type, message),
     onMutate: async ({ type, message }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['chats'] })
-  
+      // Cancel any outgoing refetches to avoid rewriting optimistic updates
+      await queryClient.cancelQueries({ queryKey: ["chats"] });
+
       // Snapshot the previous value
-      const previousChats = queryClient.getQueryData(['chats'])
-  
+      const previousChats = queryClient.getQueryData(["chats"]);
+
       // Optimistically update to the new value
-      queryClient.setQueryData(['chats'], (prevData) => {
+      queryClient.setQueryData(["chats"], (prevData) => {
         return {
           ...prevData,
           messages: [
             ...prevData.messages,
-            { 
+            {
               type,
               message,
               timestamp: new Date(),
-              local: true
-            }
+              local: true,
+            },
           ],
-          count: prevData.count + 1
+          count: prevData.count + 1,
         };
       });
-  
+
       // Return a context object with the snapshotted value
-      return { previousChats }
+      return { previousChats };
     },
     // If the mutation fails,
     // use the context returned from onMutate to roll back
     onError: (err, newMessage, context) => {
-      queryClient.setQueryData(['chats'], context.previousChats)
+      queryClient.setQueryData(["chats"], context.previousChats);
     },
-    
+
     // refetch after error or success:
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['chats'] })
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });
 
@@ -156,7 +183,10 @@ export function useQueryChats() {
       await createMutation.mutateAsync({ type, message: data });
       if (type === "sent") {
         setTimeout(async () => {
-          await createMutation.mutateAsync({ type: "received", message: data+ "\n -- you sent this" });
+          await createMutation.mutateAsync({
+            type: "received",
+            message: data + "\n -- you sent this",
+          });
         }, 3000);
       }
     },
@@ -166,17 +196,133 @@ export function useQueryChats() {
   };
 }
 
+export function useLegacyChats() {
+  const isLoading = reactive(true);
+  const shouldFetch = reactive(true);
+  const { legacyChats } = useContext(appCtx);
+  const { update, isPending } = useOptimistic({
+    data: legacyChats.value,
+    updateFn: async ({ type, message }) => {
+      await server.create(type, message);
+    },
+    onComplete: () => {
+      shouldFetch.value = true;
+    },
+    onUpdate: ({ type, message }) => {
+      const prevData = legacyChats.value;
+      legacyChats.value = {
+        ...prevData,
+        messages: [
+          ...prevData.messages,
+          {
+            type,
+            message,
+            timestamp: new Date(),
+            local: true,
+          },
+        ],
+        count: prevData.count + 1,
+      };
+
+      return legacyChats.value;
+    },
+    onError: async (err, snapshot, { type, message }) => {
+      legacyChats.value = {
+        ...snapshot,
+        messages: [
+          ...snapshot.messages,
+          {
+            type,
+            message: "failed",
+            timestamp: new Date(),
+            local: "failed",
+          },
+        ],
+        count: snapshot.count + 1,
+      };
+    },
+  });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (shouldFetch.value) {
+          const data = await server.readAll();
+          isLoading.value = false;
+          legacyChats.value = { ...data };
+          shouldFetch.value = false;
+        }
+      } catch (e) {
+        isLoading.value = false;
+      }
+    })();
+  }, [shouldFetch.value]);
+
+  return {
+    isLoading: isLoading.value,
+    chats: legacyChats.value,
+    create: async ({ type, message }) => {
+      await update({ type, message });
+      if (type === "sent") {
+        setTimeout(async () => {
+          await update({
+            type: "received",
+            message: message + "\n -- you sent this",
+          });
+        }, 3000);
+      }
+    },
+  };
+}
+
+function useOptimistic({
+  data: initialData,
+  updateFn,
+  onUpdate,
+  onError,
+  onComplete,
+}) {
+  const optimisticData = reactive(initialData);
+
+  const rollback = (prevData) => {
+    optimisticData.value = prevData || initialData;
+  };
+
+  const update = (...params) => {
+    return new Promise(async (fulfil, fail) => {
+      try {
+        const snapshot = await onUpdate(...params);
+        await updateFn(...params);
+        onComplete && (await onComplete(update));
+        optimisticData.value = snapshot;
+        fulfil();
+      } catch (e) {
+        onError && (await onError(e, snapshot, ...params));
+        onComplete && (await onComplete(update));
+        fail(e.message);
+      }
+      if (isPending) return fulfil();
+
+      startTransition(async () => {});
+    });
+  };
+
+  return {
+    update,
+    isPending,
+  };
+}
 
 export function useTemporaryData(type, data) {
   const { temp } = useContext(appCtx);
-  
+
   return {
     data: temp.value,
     write(type, message) {
-      temp.value = { type, message }
+      temp.value = { type, message };
     },
     clear() {
-      temp.value = {}
-    }
-  }
+      temp.value = {};
+    },
+  };
 }

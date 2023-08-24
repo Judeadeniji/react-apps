@@ -1,6 +1,6 @@
-import { useRef } from "react"
+
 import { Link } from "react-router-dom"
-import { useQueryChats, useTemporaryData, reactive } from "./hooks"
+import { reactive } from "./hooks"
 
 function Menu() {
   return (
@@ -30,37 +30,12 @@ export function Header({ user }) {
   )
 }
 
-export function Footer() {
+export function Footer({ children }) {
   return (
     <div className="border-t py-2 flex items-center justify-between px-2 fixed bottom-0 left-0 bg-white bg-opacity-75 backdrop-blur">
      <div className="text-2xl font-cal text-gray-600 font-medium h-[33px] w-[33px] border rounded-full grid place-content-center">+</div>
-     <MessageInput />
+      {children}
     </div>
-  )
-}
-
-
-function MessageInput() {
-  const input = useRef(null)
-  const t = useTemporaryData();
-  const { create } = useQueryChats();
-  return (
-    <form className="flex gap-x-2" onSubmit={async (e) => {
-          e.preventDefault();
-          const message = `${t.data.message}`;
-          t.clear()
-          input.current.textContent = ""
-          await create("sent", message)
-        }
-    }>
-      <span ref={input} contentEditable name="message" role="textarea" className="min-h-[1px] max-h-[150px] focus:outline-0 border w-[240px] rounded-3xl px-2 py-1 whitespace-pre-wrap overflow-y-scroll" onInput={(e) => {
-        t.write("sent", `${e.target.textContent}`.trim())
-      }}/>
-      
-      <button type="submit" className="w-[60px] h-[35px] rounded-full bg-blue-500 text-sm font-semibold text-white leading-3">
-        Send
-      </button>
-    </form>
   )
 }
 
@@ -83,7 +58,7 @@ export function Bubble({ sent, message, local }) {
     <div className={`${sent ? "self-end flex-row-reverse" : ""} max-w-[64%] min-w-0 my-1 inline-flex gap-x-1`}>
     <figure className="h-9 w-9 rounded-full border justify-self-start self-end">
       </figure>
-    <p className={`${sent ? "bg-blue-600" : "bg-green-600"}  ${local ? "animate-pulse opacity-90" : ""} inline-block p-3 rounded-2xl text-white font-normal text-[14px] font-sans  whitespace-pre-line`}>
+    <p className={`${sent ? "bg-blue-600" : "bg-green-600"}  ${local === true ? "animate-pulse opacity-90" : local === "failed" ? "bg-red-500": ""} inline-block p-3 rounded-2xl text-white font-normal text-[14px] font-sans  whitespace-pre-line`}>
       {message}
     </p>
     </div>
