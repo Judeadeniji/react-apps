@@ -44,7 +44,7 @@ export default function () {
               <div key={key} className="rounded-lg border p-2 my-2">
                 <h2 className="text-black font-bold text-md font-cal">{key}:</h2>
                 <p className="text-gray-600 font-semibold text-sm">{value?.name || value} {" "}
-                <Show when={key === "status" || value === "Alive"}>
+                <Show when={key === "status" && value === "Alive"}>
                   <span className="h-2 w-2 rounded-full bg-[#00cc00] ring-2 ring-green-400 inline-block"></span>
                 </Show>
                 </p>
