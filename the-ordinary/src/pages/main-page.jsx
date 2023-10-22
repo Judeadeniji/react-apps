@@ -1,30 +1,35 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Hero from "../components/hero";
 import { AdBanner, ProductSection, ProductCard, SectionHeader, BlogCard } from "../components/Reusables";
-import { useCategoryProducts, useCategories } from "../hooks"
+import { useCategoryProducts, useCategories, useRecentlyViewed } from "../hooks"
 
 const Section = (({ title }) => {
   const { products, isLoading } = useCategoryProducts(title);
+  const { products: recents } = useRecentlyViewed();
   
-  if(isLoading) return <p>Loading...</p>
-  
-  if (title.includes("liked")) {
-    //TODO: implement this
-    //alert(JSON.stringify(products))
-    //return ["Hello you"]
+  if(title.includes("liked") && recents.length > 0) {
+    return (
+        <ProductSection title={title} link={`/catalog/${title}`}>
+        {
+          recents && recents.map(({id, image, product_title, price, discount, isFavorite = false, slug, category }) => (
+            <ProductCard {...{id,image, price, discount, title: product_title, category, isFavorite, slug}} />
+          ))
+        }
+        </ProductSection>
+    )
+  } else if (!title.includes("liked")) {
+    return (
+        <ProductSection title={title} link={`/catalog/${title}`}>
+        {
+          products && products.map(({id, image, product_title, price, discount, isFavorite = false, slug, category }) => (
+            <ProductCard {...{id,image, price, discount, title: product_title, category, isFavorite, slug}} />
+          ))
+        }
+        </ProductSection>
+    )
   }
   
-  
-  return (
-      <ProductSection title={title} link={`/catalog/${title}`}>
-      {
-        products && products.map(({id, image, product_title, price, discount, isFavorite = false, slug, category }) => (
-          <ProductCard {...{id,image, price, discount, title: product_title, category, isFavorite, slug}} />
-        ))
-      }
-      </ProductSection>
-  )
 })
 
 export default (() => {

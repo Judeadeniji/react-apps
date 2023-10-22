@@ -117,10 +117,7 @@ function Sidebar() {
 function SidebarLink() {
   return (
     <div class="hover:bg-blue-100  rounded-md">
-      <Link className="hover:bg-clip-text
-        hover:bg-gradient-to-r hover:from-[#4db3dc] hover:text-transparent
-        hover:to-blue-800 w-full block flex items-center
-      justify-start py-2 pl-3" to="/">
+      <Link className="hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#4db3dc] hover:text-transparent hover:to-blue-800 w-full block flex items-center justify-start py-2 pl-3" to="/">
         <span className="h-7 w-7 mx-3 border">
         </span>
         <span className="font-semibold text-[18px]">

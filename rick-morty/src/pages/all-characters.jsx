@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { For, useFetch, Switch, Match} from "rc-extended"
-import { signal, watch, useSignalValue, useSignalAction } from "rc-extended/store"
+import { /*$signal, */ $effect, signal, $watch, useSignalValue, useSignalAction } from "rc-extended/store"
 
 function Header() {
 
@@ -24,7 +24,7 @@ function Card({ character }) {
 
 const idx = signal(1)
 
-function Pagination() {
+function Pagination({/* action, idx */}) {
   const action = useSignalAction(idx);
   
   const next = () => action(idx => idx + 1);
@@ -46,12 +46,24 @@ function Pagination() {
 }
 
 export default function () {
+  // const idx = $signal(1);
   const pageIndex = useSignalValue(idx)
   
   const { isPending, isFulfilled, isRejected, result, error, invalidate } = useFetch(`https://rickandmortyapi.com/api/character/?page=${pageIndex}`);
   
   // invalidate the request when the idx signal changes 
-  watch(idx, invalidate)
+  $watch(idx, (newIdxValue) => {
+    // do something with newIdxValue;
+    console.log({ idx: newIdxValue })
+    invalidate()
+  })
+ $effect(() => {
+    idx.value; // referenced here for dependency sake, unless this callback won't register 
+    console.log("Hi from $effect")
+    
+   // we could also invalidate here 😉
+  }) 
+  
   
   return (
     <main className="h-full min-w-full relative">
@@ -71,7 +83,9 @@ export default function () {
           </Match>
         </Switch>
       </section>
-      <Pagination invalidate={invalidate} />
+      <Pagination {...{/*idx={idx.value} action={(cb) => {
+        idx.value = cb(idx.value)
+      }} */}} />
     </main>
   )
 }

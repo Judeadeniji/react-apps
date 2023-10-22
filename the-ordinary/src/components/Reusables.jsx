@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { maths, Core } from "utiliti-js";
-import { useMenu } from '../hooks'
-
+import { useMenu, appCtx } from '../hooks'
 
 
 const { roundTo } = maths;
@@ -10,11 +9,24 @@ const { DateFilter } = Core;
 const df = new DateFilter();
 
 
-function set_favorite() {}
 
-const LikeButton = ({ id, isFavorite }) => (
-  <i onClick={() => set_favorite(id)} className={`self-end ml-1 text-xl bi ${isFavorite ? 'text-black bi-heart-fill' : 'bi-heart'}`} />
-)
+const LikeButton = ({ id, isFavorite }) => {
+  const { products } = useContext(appCtx);
+  function set_favorite() {
+    alert(products.value?.length)
+    const newProducts = products.value.map(product => {
+      if (product.id === id) {
+        product.isFavorite = !product.isFavorite;
+      }
+      return product;
+    });
+    
+    products.value = newProducts
+  }
+  return (
+  <i onClick={set_favorite} className={`self-end ml-1 text-xl bi ${isFavorite ? 'text-black bi-heart-fill' : 'bi-heart'}`} />
+  )
+}
 
 export const ProductCard = ({
   title,
@@ -129,10 +141,10 @@ export const Menu = ({ show }) => {
         <i className="bi bi-box-arrow-left text-2xl m-auto font-extrabold" />
       </button>
       <ul>
-        <li><Link onClick={() => route_to("/")} to="/">Home</Link></li>
-        <li><Link onClick={() => route_to("/catalog")} to="/catalog">Catalog</Link></li>
-        <li><Link onClick={() => route_to("/about")} to="/about">About</Link></li>
-        <li><a href="https://judeadeniji.github.io">Blog</a></li>
+        <li key="home"><Link onClick={() => route_to("/")} to="/">Home</Link></li>
+        <li key="catalog"><Link onClick={() => route_to("/catalog")} to="/catalog">Catalog</Link></li>
+        <li key="about"><Link onClick={() => route_to("/about")} to="/about">About</Link></li>
+        <li key="blog"><a href="https://judeadeniji.github.io">Blog</a></li>
       </ul>
     </div>
    </div>

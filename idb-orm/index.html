@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>CRUD App</title>
+</head>
+<body>
+    <h1>CRUD App</h1>
+
+    <h2>Users</h2>
+    <ul id="user-list"></ul>
+    <div>
+        <input type="text" id="user-name" placeholder="User Name">
+        <input type="text" id="user-email" placeholder="User Email">
+        <input type="number" id="user-age" placeholder="User Age">
+        <input type="file" id="profile-picture-input" accept=".jpg, .jpeg, .png"> <!-- Input for profile picture -->
+        <button id="add-user">Add User</button>
+    </div>
+
+    <!-- Display the user's profile picture -->
+    <div>
+        <img id="profile-picture-display" src="" alt="Profile Picture" style="max-width: 150px;">
+    </div>
+
+    <h2>Projects</h2>
+    <ul id="project-list"></ul>
+    <div>
+        <input type="text" id="project-name" placeholder="Project Name">
+        <select id="user-selector">
+            <option value="">Select User</option>
+        </select>
+        <button id="add-project">Add Project</button>
+    </div>
+
+    <h2>Filter Projects by User</h2>
+    <select id="filter-user">
+        <option value="">Select User</option>
+    </select>
+    <button id="filter-projects">Filter</button>
+
+    <h2>View All Projects</h2>
+    <button id="view-all-projects">View All</button>
+
+    <h2>View All Users</h2>
+    <button id="view-all-users">View All</button>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

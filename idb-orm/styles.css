@@ -1,0 +1,87 @@
+/* Reset some default styles */
+body, h1, h2, ul, li, input, select, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* Center the app in the middle of the viewport */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* Header styles */
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Lists styles */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* User and project lists */
+ul#user-list, ul#project-list {
+    margin-bottom: 20px;
+}
+
+li {
+    margin: 5px 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Input and select styles */
+input, select {
+    padding: 10px;
+    margin: 5px auto;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Button styles */
+button {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px auto;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+
+    ul {
+        width: 100%;
+    }
+
+    li {
+        width: 100%;
+    }
+
+    input, select {
+        width: 100%;
+    }
+}
+
+/* Media queries for larger screens can be added as needed. */
+
+/* Add your additional responsive styles as needed. */
