@@ -1,20 +1,25 @@
 import { Link } from "react-router-dom"
-import { For, useFetch, Switch, Match} from "rc-extended"
+import { For, Switch, Match} from "rc-extended/components"
 import { /*$signal, */ $effect, signal, $watch, useSignalValue, useSignalAction } from "rc-extended/store"
+import { useFetch } from "rc-extended/use"
 
 function Header() {
-
   return (
-    <header className="dark:bg-black dark:text-white w-full z-30 sticky h-[33px] bg-white bg-opacity-40 backdrop-blur-xl border-b flex items-center justify-center top-0 left-0 right-0">
+    <header className="w-full z-30 sticky h-[33px] bg-white bg-opacity-80 backdrop-blur-xl border-b flex items-center justify-center top-0 left-0 right-0">
         <h1 className="text-md font-bold leading-none">All Characters</h1>
     </header>
   )
 }
 
+/**
+ * 
+ * @param {{ character: { name: string, image: string, id: number } }} param0 
+ * @returns 
+ */
 function Card({ character }) {
   return (
     <Link to={`/u/${character.id}`} key={character.name} className="border rounded w-full h-[12rem] relative overflow-hidden">
-      <img loading="lazy" src={character.image} alt={character.name} className="w-full h-full object-cover" />
+      <img loading="eager" src={character.image} alt={character.name} className="w-full h-full object-cover dark:invert" />
       <div className="absolute bg-white py-2 border-t w-full bottom-0 left-0 right-0 font-semibold text-black text-sm text-center z-10">
         {character.name}
       </div>
@@ -24,7 +29,7 @@ function Card({ character }) {
 
 const idx = signal(1)
 
-function Pagination({/* action, idx */}) {
+function Pagination() {
   const action = useSignalAction(idx);
   
   const next = () => action(idx => idx + 1);
@@ -45,7 +50,7 @@ function Pagination({/* action, idx */}) {
   )
 }
 
-export default function () {
+export default function AllCharacters() {
   // const idx = $signal(1);
   const pageIndex = useSignalValue(idx)
   
@@ -66,9 +71,9 @@ export default function () {
   
   
   return (
-    <main className="h-full min-w-full relative">
+    <main className="h-full min-w-full relative dark:invert bg-white">
       <Header />
-      <section className="mt-6 grid gap-2 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2">
+      <section className="mt-6 grid gap-2 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2 bg-white">
         <Switch fallback={<p>Something Went Wrong 😭</p>}>
           <Match when={isPending}>
             <p>Loading...</p>

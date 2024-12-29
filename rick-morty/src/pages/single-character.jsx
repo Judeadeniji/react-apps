@@ -1,11 +1,12 @@
 import { useParams, Link } from "react-router-dom"
-import { useFetch, For, Show } from "rc-extended"
+import { For, Show } from "rc-extended/components"
+import { useFetch } from "rc-extended/use";
 
 
 function Header({ name }) {
 
   return (
-    <header className="dark:bg-black dark:text-white w-full z-30 sticky h-[40px] bg-white bg-opacity-40 backdrop-blur-xl border-b flex flex-row items-center justify-between top-0 left-0 right-0 px-2 relative min-w-full">
+    <header className="w-full z-30 sticky h-[40px] bg-white bg-opacity-80 backdrop-blur-xl border-b flex flex-row items-center justify-between top-0 left-0 right-0 px-2 min-w-full">
         <Link to="/all" className="left-1 text-blue-600 font-semibold">
          Back
         </Link>
@@ -15,7 +16,7 @@ function Header({ name }) {
   )
 }
 
-export default function () {
+export default function SingleCharacter () {
   const { character } = useParams();
   const { result, isPending } = useFetch(`https://rickandmortyapi.com/api/character/${character}`)
   
@@ -26,12 +27,12 @@ export default function () {
   }
 
   return (
-    <main className="h-full w-full">
+    <main className="h-full w-full dark:invert bg-white min-h-screen">
     <Header name={result ? result.name : "Loading..."} />
     <section className="px-2">
       <Show when={!isPending}>
         <figure className="border overflow-hidden rounded-md mt-2">
-          <img className="min-w-full h-auto block" src={result && result.image} />
+          <img className="min-w-full h-auto block dark:invert" src={result && result.image} />
           <p className="text-center my-1 font-semibold">
             {result?.name}
           </p>
