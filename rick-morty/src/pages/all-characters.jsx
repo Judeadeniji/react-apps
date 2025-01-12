@@ -1,96 +1,174 @@
-import { Link } from "react-router-dom"
-import { For, Switch, Match} from "rc-extended/components"
-import { /*$signal, */ $effect, signal, $watch, useSignalValue, useSignalAction } from "rc-extended/store"
-import { useFetch } from "rc-extended/use"
+import React from 'react';
+import { Link } from "react-router-dom";
+import { For, Switch, Match } from "rc-extended/components";
+import { $effect, signal, $watch, useSignalValue, useSignal } from "rc-extended/store";
+import { useFetch } from "rc-extended/use";
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import PropTypes from 'prop-types';
+
+const FloatingCard = ({ children, className }) => (
+  <div className={`relative rounded-xl group hover:scale-105 transition-all duration-500 ${className}`}>
+    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 rounded-xl blur opacity-25 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="relative bg-black/80 backdrop-blur-xl rounded-xl border border-white/10">
+      {children}
+    </div>
+  </div>
+);
+
+FloatingCard.propTypes = {
+  children: PropTypes.node.isRequired,
+  className: PropTypes.string,
+};
 
 function Header() {
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="w-full z-30 sticky h-[33px] bg-white bg-opacity-80 backdrop-blur-xl border-b flex items-center justify-center top-0 left-0 right-0">
-        <h1 className="text-md font-bold leading-none">All Characters</h1>
+    <header className={`sticky top-0 w-full z-50 transition-all duration-300 ${
+      scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' : 'bg-transparent'
+    }`}>
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
+          All Characters
+        </h1>
+        <div className="h-1 w-24 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full opacity-50" />
+      </div>
     </header>
-  )
+  );
 }
 
-/**
- * 
- * @param {{ character: { name: string, image: string, id: number } }} param0 
- * @returns 
- */
 function Card({ character }) {
   return (
-    <Link to={`/u/${character.id}`} key={character.name} className="border rounded w-full h-[12rem] relative overflow-hidden">
-      <img loading="eager" src={character.image} alt={character.name} className="w-full h-full object-cover dark:invert" />
-      <div className="absolute bg-white py-2 border-t w-full bottom-0 left-0 right-0 font-semibold text-black text-sm text-center z-10">
-        {character.name}
-      </div>
+  <Link to={`/u/${character.id}`} className="block overflow-hidden">
+      <FloatingCard className="overflow-hidden">
+        <div className="relative aspect-square overflow-hidden">
+          <img 
+            loading="eager" 
+            src={character.image} 
+            alt={character.name} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm border-t border-white/10">
+            <div className="p-3 text-center">
+              <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">
+                {character.name}
+              </span>
+            </div>
+          </div>
+        </div>
+      </FloatingCard>
     </Link>
-  )
+  );
 }
 
-const idx = signal(1)
+Card.propTypes = {
+  character: PropTypes.object.isRequired,
+};
 
 function Pagination() {
-  const action = useSignalAction(idx);
+  const [page, action] = useSignal(idx);
   
   const next = () => action(idx => idx + 1);
-  const prev = () => action(idx => {
-   return idx > 1 ? idx - 1 : idx
-  });
+  const prev = () => action(idx => idx > 1 ? idx - 1 : idx);
   
   return (
-    <div className="mt-3 border-t w-full p-1 px-3 flex items-center justify-between sticky bottom-0 right-0 left-0 bg-white z-20">
-      <button onClick={prev} className="px-3 py-2 rounded font-semibold text-white bg-black">
-        Previous 
-      </button>
-      {idx.value}
-      <button onClick={next} className="px-3 py-2 rounded font-semibold text-white bg-black">
-        Next
-      </button>
+    <div className="fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-xl border-t border-white/10">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <button 
+          onClick={prev} 
+          className="relative group px-6 py-2.5 overflow-hidden rounded-lg flex items-center gap-2"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-cyan-400 rounded-lg opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-[1px] bg-black rounded-lg" />
+          <ChevronLeft className="relative w-4 h-4 text-green-400" />
+          <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 font-medium">
+            Previous
+          </span>
+        </button>
+        
+        <span className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">
+          Page {page}
+        </span>
+        
+        <button 
+          onClick={next}
+          className="relative group px-6 py-2.5 overflow-hidden rounded-lg flex items-center gap-2"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-cyan-400 rounded-lg opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-[1px] bg-black rounded-lg" />
+          <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 font-medium">
+            Next
+          </span>
+          <ChevronRight className="relative w-4 h-4 text-green-400" />
+        </button>
+      </div>
     </div>
-  )
+  );
 }
 
+const idx = signal(1);
+
 export default function AllCharacters() {
-  // const idx = $signal(1);
-  const pageIndex = useSignalValue(idx)
-  
+  const pageIndex = useSignalValue(idx);
   const { isPending, isFulfilled, isRejected, result, error, invalidate } = useFetch(`https://rickandmortyapi.com/api/character/?page=${pageIndex}`);
   
-  // invalidate the request when the idx signal changes 
   $watch(idx, (newIdxValue) => {
-    // do something with newIdxValue;
-    console.log({ idx: newIdxValue })
-    invalidate()
-  })
- $effect(() => {
-    idx.value; // referenced here for dependency sake, unless this callback won't register 
-    console.log("Hi from $effect")
-    
-   // we could also invalidate here 😉
-  }) 
-  
-  
+    console.log({ idx: newIdxValue });
+    invalidate();
+  });
+
+  $effect(() => {
+    console.log("Hi from $effect", idx.value);
+  });
+
   return (
-    <main className="h-full min-w-full relative dark:invert bg-white">
-      <Header />
-      <section className="mt-6 grid gap-2 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2 bg-white">
-        <Switch fallback={<p>Something Went Wrong 😭</p>}>
-          <Match when={isPending}>
-            <p>Loading...</p>
-          </Match>
-          <Match when={isFulfilled}>
-            <For each={result && result.results}>
-              <Card item="character" />
-            </For>
-          </Match>
-          <Match when={isRejected}>
-            {error && error.message}
-          </Match>
-        </Switch>
-      </section>
-      <Pagination {...{/*idx={idx.value} action={(cb) => {
-        idx.value = cb(idx.value)
-      }} */}} />
-    </main>
-  )
+    <div className="min-h-screen bg-black text-white">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="absolute top-20 -left-24 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-blob" />
+        <div className="absolute top-40 -right-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+      </div>
+
+      <div className="relative">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8 pb-24">
+          <Switch fallback={
+            <div className="text-center py-12 text-white/70">
+              Something Went Wrong 😭
+            </div>
+          }>
+            <Match when={isPending}>
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
+              </div>
+            </Match>
+            <Match when={isFulfilled}>
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <For each={result && result.results}>
+                  {(character) => (
+                    <Card key={character.id} character={character} />
+                  )}
+                </For>
+              </div>
+            </Match>
+            <Match when={isRejected}>
+              <div className="text-center py-12 text-red-400">
+                {error && error.message}
+              </div>
+            </Match>
+          </Switch>
+        </main>
+
+        <Pagination />
+      </div>
+    </div>
+  );
 }
